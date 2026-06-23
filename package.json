@@ -52,6 +52,8 @@
     "files": [
       "build/**/*",
       "electron/**/*",
+      "resources/icon.png",
+      "resources/icon.ico",
       "package.json",
       "!**/*.map",
       "!**/*.ts",
@@ -62,6 +64,7 @@
       "output": "dist-electron"
     },
     "win": {
+      "icon": "resources/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -89,6 +92,7 @@
       "artifactName": "${productName}-Portable-${version}.${ext}"
     },
     "mac": {
+      "icon": "resources/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -102,6 +106,7 @@
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "linux": {
+      "icon": "resources/icon.png",
       "target": [
         "AppImage"
       ],

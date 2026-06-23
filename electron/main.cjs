@@ -39,6 +39,8 @@ async function startServer() {
 }
 
 function createWindow() {
+  const iconFile = process.platform === 'win32' ? 'icon.ico' : 'icon.png';
+  const iconPath = path.join(__dirname, '..', 'resources', iconFile);
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -46,6 +48,7 @@ function createWindow() {
     fullscreen: KIOSK_MODE,
     kiosk: KIOSK_MODE,
     backgroundColor: '#f8fafc',
+    icon: iconPath,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
