@@ -23,6 +23,7 @@
     "@sveltejs/kit": "^2.20.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.4",
     "@tailwindcss/forms": "^0.5.10",
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.12",
     "autoprefixer": "^10.4.20",
     "electron": "^33.0.0",
@@ -36,7 +37,7 @@
     "vite": "^5.4.14"
   },
   "dependencies": {
-    "@node-rs/bcrypt": "^1.10.4",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^11.8.1"
   },
   "build": {
@@ -46,8 +47,7 @@
     "asarUnpack": [
       "node_modules/better-sqlite3/**",
       "node_modules/bindings/**",
-      "node_modules/file-uri-to-path/**",
-      "node_modules/@node-rs/**"
+      "node_modules/file-uri-to-path/**"
     ],
     "files": [
       "build/**/*",
@@ -63,8 +63,18 @@
     },
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {
@@ -80,13 +90,21 @@
     },
     "mac": {
       "target": [
-        { "target": "dmg", "arch": ["arm64", "x64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "category": "public.app-category.productivity",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Office"
     }
   }

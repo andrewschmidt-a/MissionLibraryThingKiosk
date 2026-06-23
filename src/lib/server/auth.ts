@@ -1,4 +1,4 @@
-import { hash, verify } from '@node-rs/bcrypt';
+import bcrypt from 'bcryptjs';
 import { randomBytes, createHash } from 'node:crypto';
 import type { Cookies } from '@sveltejs/kit';
 import { db, getSetting, setSetting } from './db';
@@ -13,14 +13,14 @@ export function adminIsConfigured(): boolean {
 
 export async function setAdminPassword(password: string): Promise<void> {
   if (!password || password.length < 4) throw new Error('Password must be at least 4 characters.');
-  const h = await hash(password, 10);
+  const h = await bcrypt.hash(password, 10);
   setSetting(ADMIN_HASH_KEY, h);
 }
 
 export async function verifyAdminPassword(password: string): Promise<boolean> {
   const h = getSetting(ADMIN_HASH_KEY);
   if (!h) return false;
-  return verify(password, h);
+  return bcrypt.compare(password, h);
 }
 
 function hashToken(t: string): string {
