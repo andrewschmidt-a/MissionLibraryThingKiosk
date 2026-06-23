@@ -1,0 +1,64 @@
+name: Build desktop apps
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: MissionLibraryCheckout-Windows
+            build_script: electron:dist:win
+            output_glob: |
+              dist-electron/*.exe
+              dist-electron/*.exe.blockmap
+              dist-electron/latest.yml
+          - os: macos-latest
+            artifact: MissionLibraryCheckout-macOS
+            build_script: electron:dist:mac
+            output_glob: |
+              dist-electron/*.dmg
+              dist-electron/*.dmg.blockmap
+              dist-electron/*.zip
+              dist-electron/latest-mac.yml
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild native modules for Electron
+        run: npm run electron:rebuild
+
+      - name: Build SvelteKit
+        run: npm run build
+
+      - name: Package Electron app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run ${{ matrix.build_script }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.output_glob }}
+          if-no-files-found: error
+          retention-days: 30

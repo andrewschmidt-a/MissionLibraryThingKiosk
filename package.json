@@ -1,0 +1,90 @@
+{
+  "name": "mission-library-checkout",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simple kiosk-style library checkout system",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node build/index.js",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "electron:rebuild": "electron-builder install-app-deps",
+    "electron:start": "npm run build && electron .",
+    "electron:dir": "npm run build && electron-builder --dir",
+    "electron:dist": "npm run build && electron-builder",
+    "electron:dist:win": "npm run build && electron-builder --win",
+    "electron:dist:mac": "npm run build && electron-builder --mac"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-node": "^5.2.12",
+    "@sveltejs/kit": "^2.20.0",
+    "@sveltejs/vite-plugin-svelte": "^4.0.4",
+    "@tailwindcss/forms": "^0.5.10",
+    "@types/better-sqlite3": "^7.6.12",
+    "autoprefixer": "^10.4.20",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "postcss": "^8.5.3",
+    "svelte": "^5.20.0",
+    "svelte-check": "^4.1.4",
+    "tailwindcss": "^3.4.17",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.3",
+    "vite": "^5.4.14"
+  },
+  "dependencies": {
+    "@node-rs/bcrypt": "^1.10.4",
+    "better-sqlite3": "^11.8.1"
+  },
+  "build": {
+    "appId": "com.missionlibrary.checkout",
+    "productName": "Mission Library Checkout",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**",
+      "node_modules/bindings/**",
+      "node_modules/file-uri-to-path/**",
+      "node_modules/@node-rs/**"
+    ],
+    "files": [
+      "build/**/*",
+      "electron/**/*",
+      "package.json",
+      "!**/*.map",
+      "!**/*.ts",
+      "!**/tsconfig*.json"
+    ],
+    "directories": {
+      "buildResources": "resources",
+      "output": "dist-electron"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] }
+      ],
+      "category": "public.app-category.productivity",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Office"
+    }
+  }
+}
