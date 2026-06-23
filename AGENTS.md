@@ -97,8 +97,17 @@ Sensitive: contains patron phone numbers + bcrypt admin hash. Don't commit, don'
 - No comments unless something is genuinely non-obvious (the lazy-DB Proxy, ABI notes, ISBN placeholder format).
 - Use `npm run build` (not `vite build`) to ensure the adapter-node post-step runs.
 
-## CI
-`.github/workflows/build.yml` runs on push to `main`, PRs, and manual dispatch. Produces unsigned installers as workflow artifacts. To enable signing later, set `CSC_LINK`/`CSC_KEY_PASSWORD` (Win) or Apple Developer secrets (Mac) and remove `CSC_IDENTITY_AUTO_DISCOVERY: 'false'`.
+## CI & versioning
+`.github/workflows/build.yml` runs on push to `main`, PRs, and manual dispatch.
+
+**Versioning scheme:** `MAJOR.MINOR.<YYYYMMDDHHMM>` (semver-compatible).
+- `MAJOR.MINOR` lives in the top-level `VERSION` file. Bump it manually when you cut a new minor (or breaking) release.
+- The patch component is the UTC build timestamp, so every build is uniquely versioned and ordered.
+- The workflow runs `npm version --no-git-tag-version` to stamp this into `package.json` before electron-builder runs, so installer filenames and `latest.yml` reflect the same version.
+
+**Release:** the `release` job (skipped on PRs) downloads the Win/Mac artifacts and publishes a GitHub Release tagged `v<MAJOR>.<MINOR>.<YYYYMMDDHHMM>` with the installers attached and auto-generated release notes.
+
+**Signing:** builds are unsigned. To enable code signing, set `CSC_LINK`/`CSC_KEY_PASSWORD` (Win) or Apple Developer secrets (Mac) and remove `CSC_IDENTITY_AUTO_DISCOVERY: 'false'` from the workflow.
 
 ## What this app is **not**
 - No due dates, no overdue notifications.

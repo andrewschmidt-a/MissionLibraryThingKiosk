@@ -1,4 +1,4 @@
-name: Build desktop apps
+name: Build & release desktop apps
 
 on:
   push:
@@ -7,8 +7,35 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.compute.outputs.version }}
+      tag: ${{ steps.compute.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute version
+        id: compute
+        shell: bash
+        run: |
+          MAJOR_MINOR=$(tr -d '[:space:]' < VERSION)
+          if [[ ! "$MAJOR_MINOR" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::VERSION file must contain MAJOR.MINOR (got '$MAJOR_MINOR')"
+            exit 1
+          fi
+          PATCH=$(date -u +'%Y%m%d%H%M')
+          VERSION="${MAJOR_MINOR}.${PATCH}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Computed version: ${VERSION}"
+
   build:
+    needs: version
     strategy:
       fail-fast: false
       matrix:
@@ -40,6 +67,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Apply computed version to package.json
+        shell: bash
+        run: npm version --no-git-tag-version --allow-same-version "${{ needs.version.outputs.version }}"
+
       - name: Install dependencies
         run: npm ci
 
@@ -62,3 +93,36 @@ jobs:
           path: ${{ matrix.output_glob }}
           if-no-files-found: error
           retention-days: 30
+
+  release:
+    needs: [version, build]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: MissionLibraryCheckout-Windows
+          path: release-assets/windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: MissionLibraryCheckout-macOS
+          path: release-assets/macos
+
+      - name: List release assets
+        run: ls -lR release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: ${{ needs.version.outputs.tag }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            release-assets/windows/*
+            release-assets/macos/*
